@@ -12,6 +12,6 @@ class ServerBeforeStartCallback {
     {
         $container = ApplicationContext::getContainer();
         $consul = $container->get(ConsulRegisterService::class);
-        $consul->add();
+        echo $consul->add() . PHP_EOL;
     }
 }

@@ -33,55 +33,43 @@ class ConsulRegisterService
     /**
      * @param $container
      */
-    public function __construct(ContainerInterface $container, $poolName)
+    public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
         $config = $container->get(ConfigInterface::class);
+        $poolName = 'consul';
         $consulKey = 'hky_plugin.' . $poolName;
         if (!$config->has($consulKey)) {
             throw new \InvalidArgumentException('config[' . $consulKey . '] is not exist!');
         }
         $this->consulConfig = array_replace($this->consulConfig, $config->get($consulKey));
-        $projectName = strval($config->get('config.app_name'));
+        $projectName = strval($config->get('app_name'));
         if (!$projectName) {
             throw new \InvalidArgumentException('config[config.app_name] is null');
         }
         $this->projectName = $projectName;
         $this->defaultIp = '127.0.0.1:' . $config->get('server.servers')[0]['port'];
         //vim ~/.profile add export HYPERF_HKY_WECHAT_ADDRESS="127.0.0.1:9501"
-        $this->defaultIp = $_SERVER['HYPERF_' . strtoupper($this->projectName) . '_ADDRESS'] ?? $this->defaultIp;
+        $this->defaultIp = $_SERVER['HYPERF_' . str_replace('-', '_', strtoupper($this->projectName)) . '_ADDRESS'] ?? $this->defaultIp;
 
-        $this->consulName = "php." . strtolower($this->projectName);
-        $this->consulId = $this->projectName . '_' . md5($this->defaultIp);
+        $this->consulName = "php-" . strtolower($this->projectName);
+        $this->consulId = "php-" . strtolower($this->projectName) . '-' . md5($this->defaultIp);
     }
 
-    // 服务注册
-    public function add()
-    {
-
-        var_dump($this->addServer());
-        $object = $this;
-        \Swoole\Timer::tick(10000, function() use ($object) {
-            $response = $object->addServer();
-            var_dump($response);
-        });
-    }
-
-    public function addServer() {
+    public function add() {
 
         $ipAr = explode(':', $this->defaultIp);
         $registerService = [
-            "ID" => "php." . $this->consulId ,
-            "Name" => "php." . $this->consulName,
-            "Tags" => ["primary"],
+            "ID" => $this->consulId ,
+            "Name" => $this->consulName,
+            "Tags" => ["hky_wechat", "php"],
             "Address" => $ipAr[0],
-            "Port" => $ipAr[1],
+            "Port" => intval($ipAr[1]),
             "Check" => [
-                "id" => "api",
-                "name" => "check consul health on " . $this->defaultIp,
                 "http" => "http://" . $this->defaultIp . "/consul/health",
-                "interval" => "1s",
-                "timeout" => "1s"
+                "DeregisterCriticalServiceAfter" => "90m",
+                "interval" => "5s",
+                "timeout" => "3s"
             ]
         ];
         $consulUrl = $this->consulConfig['url'];
@@ -90,7 +78,7 @@ class ConsulRegisterService
                 'base_uri' => $consulUrl,
             ]);
         });
-        return $agent->registerService($registerService);
+        return $agent->registerService($registerService)->getBody()->getContents();
     }
 
     /**
@@ -105,6 +93,8 @@ class ConsulRegisterService
                 'base_uri' => $consulUrl,
             ]);
         });
-        return $agent->deregisterService($this->consulId);
+        $response = $agent->deregisterService($this->consulId);
+        $content = $response->getBody()->getContents();
+        return $content;
     }
 }

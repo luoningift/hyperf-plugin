@@ -1,10 +1,10 @@
 使用帮助
 heyperf中执行
+
 php bin/hyperf.php vendor:publish hky/plugin
 
 修改config/autoload/hky_plugin.php中url为consul服务的地址
 
-修改config/autoload/server.php中的callback为ServerBeforeStartCallback
 'callbacks' => [
         SwooleEvent::ON_BEFORE_START => [Hky\Plugin\Consul\ServerBeforeStartCallback::class, 'beforeStart'],
         SwooleEvent::ON_WORKER_START => [Hyperf\Framework\Bootstrap\WorkerStartCallback::class, 'onWorkerStart'],
@@ -12,3 +12,4 @@ php bin/hyperf.php vendor:publish hky/plugin
         SwooleEvent::ON_SHUTDOWN     => [Hky\Plugin\Consul\ServerShutDownCallback::class, 'beforeShutDown']
 ],
 
+supervisor 或者其他进程管理工具 发信号kill -15 到主进程

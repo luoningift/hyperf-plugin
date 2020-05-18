@@ -12,6 +12,6 @@ class ServerShutDownCallback
     public function beforeShutDown()
     {
         $registerServer = ApplicationContext::getContainer()->get(ConsulRegisterService::class);
-        $registerServer->del();
+        var_dump($registerServer->del());
     }
 }
