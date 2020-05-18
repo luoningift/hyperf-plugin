@@ -1,0 +1,45 @@
+{
+  "name": "hky/plugin",
+  "description": "hack hyperf code",
+  "type": "library",
+  "authors": [
+    {
+      "name": "luoning",
+      "email": "nluo@kaikeba.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.2",
+    "ext-swoole": ">=4.4",
+    "hyperf/di": "~1.1.0",
+    "hyperf/utils": "~1.1.0",
+    "psr/container": "^1.0",
+    "hyperf/config": "~1.1.0",
+    "swoft/swoole-ide-helper": "^4.4",
+    "hyperf/cache": "~1.1.0",
+    "hyperf/command": "~1.1.0",
+    "hyperf/db-connection": "~1.1.0",
+    "hyperf/framework": "~1.1.0",
+    "hyperf/guzzle": "~1.1.0",
+    "hyperf/http-server": "~1.1.0",
+    "hyperf/logger": "~1.1.0",
+    "hyperf/memory": "~1.1.0",
+    "hyperf/process": "~1.1.0",
+    "hyperf/redis": "~1.1.0",
+    "hyperf/async-queue": "^1.1",
+    "hyperf/validation": "^1.1",
+    "hyperf/consul": "^1.1",
+    "hyperf/grpc-client": "~1.1.0",
+    "hyperf/grpc-server": "~1.1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Hky\\Plugin\\": "src/"
+    }
+  },
+  "extra": {
+    "hyperf": {
+      "config": "Hky\\Plugin\\ConfigProvider"
+    }
+  }
+}
