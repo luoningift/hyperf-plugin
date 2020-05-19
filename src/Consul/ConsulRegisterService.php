@@ -23,8 +23,6 @@ class ConsulRegisterService
         'enable' => 1,
     ];
 
-    private $projectName = '';
-
     private $registerIp = '127.0.0.1';
 
     private $registerPort = 0;
@@ -59,7 +57,7 @@ class ConsulRegisterService
         $this->registerPort = intval($config->get('server.servers')[0]['port']);
         $clientIp = swoole_get_local_ip();
         $this->registerIp = array_pop($clientIp);
-        $this->consulId = $this->projectName . '-' . $this->registerIp . ':' . $this->registerPort;
+        $this->consulId = $this->consulName . '-' . $this->registerIp . ':' . $this->registerPort;
     }
 
     /**
