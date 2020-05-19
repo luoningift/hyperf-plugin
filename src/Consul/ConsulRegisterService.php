@@ -20,6 +20,7 @@ class ConsulRegisterService
 
     private $consulConfig = [
         'url' => 'http://127.0.0.1:8500',
+        'enable' => true,
     ];
 
     private $projectName = '';
@@ -56,11 +57,18 @@ class ConsulRegisterService
         $this->consulId = "php-" . strtolower($this->projectName) . '-' . md5($this->defaultIp);
     }
 
-    public function add() {
+    /**
+     * @return string
+     */
+    public function add()
+    {
 
+        if (!$this->consulConfig['enable']) {
+            return '';
+        }
         $ipAr = explode(':', $this->defaultIp);
         $registerService = [
-            "ID" => $this->consulId ,
+            "ID" => $this->consulId,
             "Name" => $this->consulName,
             "Tags" => ["hky_wechat", "php"],
             "Address" => $ipAr[0],
@@ -83,10 +91,14 @@ class ConsulRegisterService
 
     /**
      * kill -15 服务停止事件
-     * @return \Hyperf\Consul\ConsulResponse
+     * @return \Hyperf\Consul\ConsulResponse | string
      */
-    public function del() {
+    public function del()
+    {
 
+        if (!$this->consulConfig['enable']) {
+            return '';
+        }
         $consulUrl = $this->consulConfig['url'];
         $agent = new Agent(function () use ($consulUrl) {
             return $this->container->get(ClientFactory::class)->create([
