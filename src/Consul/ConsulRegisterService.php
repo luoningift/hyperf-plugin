@@ -20,16 +20,20 @@ class ConsulRegisterService
 
     private $consulConfig = [
         'url' => 'http://127.0.0.1:8500',
-        'enable' => true,
+        'enable' => 1,
     ];
 
     private $projectName = '';
 
-    private $defaultIp = '127.0.0.1:9501';
+    private $registerIp = '127.0.0.1';
+
+    private $registerPort = 0;
 
     private $consulId = '';
 
     private $consulName = '';
+
+    private $consulUrl = '';
 
     /**
      * @param $container
@@ -44,69 +48,96 @@ class ConsulRegisterService
             throw new \InvalidArgumentException('config[' . $consulKey . '] is not exist!');
         }
         $this->consulConfig = array_replace($this->consulConfig, $config->get($consulKey));
-        $projectName = strval($config->get('app_name'));
-        if (!$projectName) {
+        //consul服务地址
+        $this->consulUrl = explode(';', $this->consulConfig['url']);
+        //获取项目名称
+        $this->consulName = strval($config->get('app_name'));
+        if (!$this->consulName) {
             throw new \InvalidArgumentException('config[config.app_name] is null');
         }
-        $this->projectName = $projectName;
-        $this->defaultIp = '127.0.0.1:' . $config->get('server.servers')[0]['port'];
-        //vim ~/.profile add export HYPERF_HKY_WECHAT_ADDRESS="127.0.0.1:9501"
-        $this->defaultIp = $_SERVER['HYPERF_' . str_replace('-', '_', strtoupper($this->projectName)) . '_ADDRESS'] ?? $this->defaultIp;
-
-        $this->consulName = "php-" . strtolower($this->projectName);
-        $this->consulId = "php-" . strtolower($this->projectName) . '-' . md5($this->defaultIp);
+        //注册端口和ip
+        $this->registerPort = intval($config->get('server.servers')[0]['port']);
+        $clientIp = swoole_get_local_ip();
+        $this->registerIp = array_pop($clientIp);
+        $this->consulId = $this->projectName . '-' . $this->registerIp . ':' . $this->registerPort;
     }
 
     /**
-     * @return string
+     * @return boolean
      */
     public function add()
     {
 
         if (!$this->consulConfig['enable']) {
-            return '';
+            return true;
         }
-        $ipAr = explode(':', $this->defaultIp);
+
         $registerService = [
-            "ID" => $this->consulId,
-            "Name" => $this->consulName,
-            "Tags" => ["hky_wechat", "php"],
-            "Address" => $ipAr[0],
-            "Port" => intval($ipAr[1]),
-            "Check" => [
-                "http" => "http://" . $this->defaultIp . "/consul/health",
-                "DeregisterCriticalServiceAfter" => "90m",
-                "interval" => "5s",
-                "timeout" => "3s"
+            'ID' => $this->consulId,
+            'Name' => $this->consulName,
+            'Tags' => [
+               $this->consulName
+            ],
+            'Address' => $this->registerIp,
+            'Port' => $this->registerPort,
+            'Meta' => [
+                'version' => '1.0'
+            ],
+            'EnableTagOverride' => false,
+            'Weights' => [
+                'Passing' => 10,
+                'Warning' => 1
+            ],
+            'Checks' => [
+                [
+                    'name' => $this->consulId . '-check',
+                    'http' => 'http://' . $this->registerIp . ':' . $this->registerPort . '/health/check',
+                    'interval' => "2s",
+                    'timeout' => "1s",
+                ]
             ]
         ];
-        $consulUrl = $this->consulConfig['url'];
-        $agent = new Agent(function () use ($consulUrl) {
-            return $this->container->get(ClientFactory::class)->create([
-                'base_uri' => $consulUrl,
-            ]);
-        });
-        return $agent->registerService($registerService)->getBody()->getContents();
+        $statusCodes = [];
+        foreach ($this->consulUrl as $consulUrl) {
+            $agent = new Agent(function () use ($consulUrl) {
+                return $this->container->get(ClientFactory::class)->create([
+                    'base_uri' => $consulUrl,
+                ]);
+            });
+            $statusCodes[] = $agent->registerService($registerService)->getStatusCode();
+        }
+        foreach ($statusCodes as $status) {
+            if ($status != 200) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
      * kill -15 服务停止事件
-     * @return \Hyperf\Consul\ConsulResponse | string
+     * @return boolean
      */
     public function del()
     {
 
         if (!$this->consulConfig['enable']) {
-            return '';
+            return true;
         }
-        $consulUrl = $this->consulConfig['url'];
-        $agent = new Agent(function () use ($consulUrl) {
-            return $this->container->get(ClientFactory::class)->create([
-                'base_uri' => $consulUrl,
-            ]);
-        });
-        $response = $agent->deregisterService($this->consulId);
-        $content = $response->getBody()->getContents();
-        return $content;
+        $statusCodes = [];
+        foreach ($this->consulUrl as $consulUrl) {
+            $agent = new Agent(function () use ($consulUrl) {
+                return $this->container->get(ClientFactory::class)->create([
+                    'base_uri' => $consulUrl,
+                ]);
+            });
+            $statusCodes[] = $agent->deregisterService($this->consulId)->getStatusCode();
+        }
+        foreach ($statusCodes as $status) {
+            if ($status != 200) {
+                return false;
+            }
+        }
+        return true;
     }
 }

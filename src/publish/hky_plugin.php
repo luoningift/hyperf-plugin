@@ -12,6 +12,6 @@ declare(strict_types=1);
 return [
     'consul' => [
         'url' => 'http://127.0.0.1:8500',
-        'enable' => true,
+        'enable' => 0,
     ],
 ];
