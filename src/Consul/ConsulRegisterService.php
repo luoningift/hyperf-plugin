@@ -129,7 +129,7 @@ class ConsulRegisterService
                     'base_uri' => $consulUrl,
                 ]);
             });
-            $statusCodes[] = $agent->deregisterService($this->consulId)->getStatusCode();
+            $statusCodes[] = $agent->deregisterService(urlencode($this->consulId))->getStatusCode();
         }
         foreach ($statusCodes as $status) {
             if ($status != 200) {
