@@ -13,5 +13,7 @@ return [
     'consul' => [
         'url' => 'http://127.0.0.1:8500',
         'enable' => 0,
+        //读取哪个网卡信息
+        'out_net_card' => '',
     ],
 ];

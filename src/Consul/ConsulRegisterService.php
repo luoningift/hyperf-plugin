@@ -21,6 +21,7 @@ class ConsulRegisterService
     private $consulConfig = [
         'url' => 'http://127.0.0.1:8500',
         'enable' => 1,
+        'out_net_card' => '',
     ];
 
     private $registerIp = '127.0.0.1';
@@ -56,7 +57,8 @@ class ConsulRegisterService
         //注册端口和ip
         $this->registerPort = intval($config->get('server.servers')[0]['port']);
         $clientIp = swoole_get_local_ip();
-        $this->registerIp = array_pop($clientIp);
+        $netCard = $this->consulConfig['out_net_card'];
+        $this->registerIp = $netCard && isset($clientIp[$netCard]) ? $clientIp[$netCard] : array_pop($clientIp);
         $this->consulId = $this->consulName . '-' . $this->registerIp . ':' . $this->registerPort;
     }
 
