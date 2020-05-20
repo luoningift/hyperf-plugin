@@ -11,11 +11,18 @@ declare(strict_types=1);
  */
 namespace Hky\Plugin;
 
+use Hky\Plugin\Consul\ConsulOnShutdownListener;
+use Hky\Plugin\Consul\ConsulOnStartListener;
+
 class ConfigProvider
 {
     public function __invoke(): array
     {
         return [
+            'listeners' => [
+                ConsulOnShutdownListener::class,
+                ConsulOnStartListener::class,
+            ],
             'dependencies' => [
             ],
             'annotations' => [

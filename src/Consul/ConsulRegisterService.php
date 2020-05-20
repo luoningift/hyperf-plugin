@@ -99,6 +99,7 @@ class ConsulRegisterService
         ];
         $statusCodes = [];
         foreach ($this->consulUrl as $consulUrl) {
+            print_r($registerService);
             $agent = new Agent(function () use ($consulUrl) {
                 return $this->container->get(ClientFactory::class)->create([
                     'base_uri' => $consulUrl,
@@ -124,6 +125,7 @@ class ConsulRegisterService
         if (!$this->consulConfig['enable']) {
             return true;
         }
+        echo '1111111' . PHP_EOL;
         $statusCodes = [];
         foreach ($this->consulUrl as $consulUrl) {
             $agent = new Agent(function () use ($consulUrl) {
@@ -131,6 +133,7 @@ class ConsulRegisterService
                     'base_uri' => $consulUrl,
                 ]);
             });
+            echo $this->consulId . PHP_EOL;
             $statusCodes[] = $agent->deregisterService(urlencode($this->consulId))->getStatusCode();
         }
         foreach ($statusCodes as $status) {

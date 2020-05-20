@@ -6,10 +6,8 @@ php bin/hyperf.php vendor:publish hky/plugin
 修改config/autoload/hky_plugin.php中url为consul服务的地址 多个地址以;分割
 例如 'url' => 'http://127.0.0.1:8500;http://127.0.0.1:9800';
 
+callbacks 增加一下内容
 'callbacks' => [
-        SwooleEvent::ON_BEFORE_START => [Hky\Plugin\Consul\ServerBeforeStartCallback::class, 'beforeStart'],
-        SwooleEvent::ON_WORKER_START => [Hyperf\Framework\Bootstrap\WorkerStartCallback::class, 'onWorkerStart'],
-        SwooleEvent::ON_PIPE_MESSAGE => [Hyperf\Framework\Bootstrap\PipeMessageCallback::class, 'onPipeMessage'],
-        SwooleEvent::ON_SHUTDOWN     => [Hky\Plugin\Consul\ServerShutDownCallback::class, 'beforeShutDown']
+        SwooleEvent::ON_SHUTDOWN => [Hyperf\Framework\Bootstrap\ShutdownCallback::class, 'onShutdown'],
 ]
 
