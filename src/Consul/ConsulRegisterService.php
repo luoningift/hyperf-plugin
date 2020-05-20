@@ -99,7 +99,6 @@ class ConsulRegisterService
         ];
         $statusCodes = [];
         foreach ($this->consulUrl as $consulUrl) {
-            print_r($registerService);
             $agent = new Agent(function () use ($consulUrl) {
                 return $this->container->get(ClientFactory::class)->create([
                     'base_uri' => $consulUrl,
