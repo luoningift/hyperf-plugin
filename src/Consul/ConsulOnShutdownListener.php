@@ -33,7 +33,6 @@ class ConsulOnShutdownListener implements ListenerInterface
      */
     public function process(object $event)
     {
-        echo '111111' . PHP_EOL; 
         $container = ApplicationContext::getContainer();
         $logger = $container->get(StdoutLoggerInterface::class);
         try {
