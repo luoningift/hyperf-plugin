@@ -11,6 +11,8 @@ declare(strict_types=1);
  */
 namespace Hky\Plugin;
 
+use Hky\Plugin\Consul\ConsulOnAfterWorkerStartListener;
+use Hky\Plugin\Consul\ConsulOnBeforeMainWorkerStartListener;
 use Hky\Plugin\Consul\ConsulOnShutdownListener;
 use Hky\Plugin\Consul\ConsulOnStartListener;
 
@@ -22,6 +24,8 @@ class ConfigProvider
             'listeners' => [
                 ConsulOnShutdownListener::class,
                 ConsulOnStartListener::class,
+                ConsulOnBeforeMainWorkerStartListener::class,
+                ConsulOnAfterWorkerStartListener::class,
             ],
             'dependencies' => [
             ],

@@ -5,6 +5,7 @@ namespace Hky\Plugin\Consul;
 use Hyperf\Consul\Agent;
 use Hyperf\Consul\Health;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Contract\StdoutLoggerInterface;
 use Psr\Container\ContainerInterface;
 use Hyperf\Guzzle\ClientFactory;
 
@@ -98,13 +99,21 @@ class ConsulRegisterService
             ]
         ];
         $statusCodes = [];
+        $logger = $this->container->get(StdoutLoggerInterface::class);
         foreach ($this->consulUrl as $consulUrl) {
-            $agent = new Agent(function () use ($consulUrl) {
-                return $this->container->get(ClientFactory::class)->create([
-                    'base_uri' => $consulUrl,
-                ]);
-            });
-            $statusCodes[] = $agent->registerService($registerService)->getStatusCode();
+            try {
+                $agent = new Agent(function () use ($consulUrl) {
+                    return $this->container->get(ClientFactory::class)->create([
+                        'base_uri' => $consulUrl,
+                    ]);
+                });
+                $statusCodes[] = $agent->registerService($registerService)->getStatusCode();
+                $logger->info("consul: register to " . $consulUrl . ' succcess !');
+            } catch (\Exception $throwable) {
+                $logger->error("consul: register to " . $consulUrl . ' failed !');
+                $logger->error(sprintf('%s[%s] in %s', $throwable->getMessage(), $throwable->getLine(), $throwable->getFile()));
+                $logger->error($throwable->getTraceAsString());
+            }
         }
         foreach ($statusCodes as $status) {
             if ($status != 200) {
@@ -125,13 +134,21 @@ class ConsulRegisterService
             return true;
         }
         $statusCodes = [];
+        $logger = $this->container->get(StdoutLoggerInterface::class);
         foreach ($this->consulUrl as $consulUrl) {
-            $agent = new Agent(function () use ($consulUrl) {
-                return $this->container->get(ClientFactory::class)->create([
-                    'base_uri' => $consulUrl,
-                ]);
-            });
-            $statusCodes[] = $agent->deregisterService(urlencode($this->consulId))->getStatusCode();
+            try {
+                $agent = new Agent(function () use ($consulUrl) {
+                    return $this->container->get(ClientFactory::class)->create([
+                        'base_uri' => $consulUrl,
+                    ]);
+                });
+                $statusCodes[] = $agent->deregisterService(urlencode($this->consulId))->getStatusCode();
+                $logger->info("consul: deregister to " . $consulUrl . ' succcess !');
+            } catch (\Exception $throwable) {
+                $logger->error("consul: deregister to " . $consulUrl . ' failed !');
+                $logger->error(sprintf('%s[%s] in %s', $throwable->getMessage(), $throwable->getLine(), $throwable->getFile()));
+                $logger->error($throwable->getTraceAsString());
+            }
         }
         foreach ($statusCodes as $status) {
             if ($status != 200) {

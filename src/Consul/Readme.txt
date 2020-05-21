@@ -8,6 +8,6 @@ php bin/hyperf.php vendor:publish hky/plugin
 
 callbacks 增加一下内容
 'callbacks' => [
-        SwooleEvent::ON_SHUTDOWN => [Hyperf\Framework\Bootstrap\ShutdownCallback::class, 'onShutdown'],
+   SwooleEvent::ON_MANAGER_STOP => [Hyperf\Framework\Bootstrap\ManagerStopCallback::class, 'onManagerStop'],
 ]
 
